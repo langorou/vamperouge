@@ -43,6 +43,43 @@ class State:
     def get_cell(self, x, y):
         return self.grid.get(Coordinates(x, y))
 
+    def _transform_coordinates(self, coord, transform):
+        t_x, t_y = transform
+        x_res = coord.x + t_x
+        if (x_res < 0) or (x_res >= self.width):
+            return None
+        y_res = coord.y + t_y
+        if (y_res < 0) or (y_res >= self.height):
+            return None
+        return Coordinates(x=x_res, y=y_res)
+
+    def _generate_moves_from_cell(self, coord):
+        moves = []
+        transforms = [
+            (0, -1),
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1),
+            (1, 0),
+            (1, -1),
+        ]
+        for t in transforms:
+            target = self._transform_coordinates(coord, t)
+            if target is None:
+                continue
+            moves.append(Move(coord, self.grid[coord].count, target))
+        return moves
+
+    def get_legal_moves(self, race):
+        moves = []
+        for coord, cell in self.grid.items():
+            if cell.race != race:
+                continue
+            moves.extend(self._generate_moves_from_cell(coord))
+        return moves
+
     def _apply_move(self, race, target, count):
         end_cell = self.grid.get(target, Cell(race=race, count=0))
         if end_cell.count == 0 or end_cell.race == race:

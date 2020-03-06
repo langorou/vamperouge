@@ -13,6 +13,52 @@ from game import (
 )
 
 
+def test_get_legal_moves():
+    h = 3
+    w = 4
+    ######################
+    # ____#V:07#____#____#
+    ######################
+    # ____#W:09#____#____#
+    ######################
+    # V:05#____#____#____#
+    ######################
+    grid = {
+        Coordinates(0, 0): Cell(VAMPIRE, 5),
+        Coordinates(1, 1): Cell(WEREWOLF, 9),
+        Coordinates(1, 2): Cell(VAMPIRE, 7),
+    }
+    state = State(grid=grid, height=h, width=w)
+    vampire_legal_moves = state.get_legal_moves(VAMPIRE)
+    werewolf_legal_moves = state.get_legal_moves(WEREWOLF)
+    assert len(vampire_legal_moves) == 8
+    assert len(werewolf_legal_moves) == 8
+    vampire_expected = [
+        Move(Coordinates(0, 0), 5, Coordinates(1, 0)),
+        Move(Coordinates(0, 0), 5, Coordinates(1, 1)),
+        Move(Coordinates(0, 0), 5, Coordinates(0, 1)),
+        Move(Coordinates(1, 2), 7, Coordinates(0, 2)),
+        Move(Coordinates(1, 2), 7, Coordinates(0, 1)),
+        Move(Coordinates(1, 2), 7, Coordinates(1, 1)),
+        Move(Coordinates(1, 2), 7, Coordinates(2, 1)),
+        Move(Coordinates(1, 2), 7, Coordinates(2, 2)),
+    ]
+    werewolf_expected = [
+        Move(Coordinates(1, 1), 9, Coordinates(2, 1)),
+        Move(Coordinates(1, 1), 9, Coordinates(2, 2)),
+        Move(Coordinates(1, 1), 9, Coordinates(1, 2)),
+        Move(Coordinates(1, 1), 9, Coordinates(0, 2)),
+        Move(Coordinates(1, 1), 9, Coordinates(0, 1)),
+        Move(Coordinates(1, 1), 9, Coordinates(0, 0)),
+        Move(Coordinates(1, 1), 9, Coordinates(1, 0)),
+        Move(Coordinates(1, 1), 9, Coordinates(2, 0)),
+    ]
+    for m in vampire_expected:
+        assert m in vampire_legal_moves
+    for m in werewolf_expected:
+        assert m in werewolf_legal_moves
+
+
 def test_apply_move():
     h = 3
     w = 4
