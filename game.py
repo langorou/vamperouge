@@ -1,10 +1,10 @@
 from collections import namedtuple
 from dataclasses import dataclass
-from random import random
+from random import random, randint
 
 HUMAN = 0
 VAMPIRE = 1
-WEREWOLF = 2
+WEREWOLF = -1
 
 
 @dataclass(eq=True, frozen=True)
@@ -30,6 +30,79 @@ class IllegalMoveException(Exception):
     pass
 
 
+class Game:
+    MIN_ROW = 3
+    MIN_COL = 3
+    MAX_ROW = 16
+    MAX_COL = 16
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def get_action_size():
+        return Game.MAX_COL * Game.MAX_ROW * 8
+
+    #TODO check if OK: return state as is
+    @staticmethod
+    def get_canonical_form(state, player):
+        return state
+
+    # TODO for now, generate only one map but should be random
+    @staticmethod
+    def get_init_state():
+        # w = randint(Game.MIN_COL, Game.MAX_COL)
+        # h = randint(Game.MIN_ROW, Game.MIN_COL)
+        h = 5
+        w = 10
+        grid = {
+            Coordinates(2, 2): Cell(HUMAN, 4),
+            Coordinates(9, 0): Cell(HUMAN, 2),
+            Coordinates(9, 2): Cell(HUMAN, 1),
+            Coordinates(9, 4): Cell(HUMAN, 2),
+            Coordinates(4, 1): Cell(WEREWOLF, 4),
+            Coordinates(4, 3): Cell(VAMPIRE, 4),
+        }
+        return State(grid=grid, height=h, width=w)
+
+    @staticmethod
+    def hash_state(state):
+        h = str(state.height) + str(state.width)
+        for x in range(state.width):
+            for y in range(state.height):
+                cell = state.get_cell(x, y)
+                if cell is None:
+                    continue
+                h += str(x) + str(y) + str(cell.race) + str(cell.count)
+        return h
+
+    @staticmethod
+    def get_state_score(state, player):
+        """
+        Input:
+            state: current state
+            player: current player (1 or -1)
+        Returns:
+            r: 0 if game has not ended
+               1 if player won
+               -1 if player lost
+        """
+        player_has_units = False
+        opponent_has_units = False
+        for cell in state.grid.values():
+            if cell.race == player:
+                player_has_units = True
+            if cell.race == -player:
+                opponent_has_units = True
+            if player_has_units and opponent_has_units:
+                return 0
+        if not player_has_units:
+            return -1
+        if not opponent_has_units:
+            return 1
+        raise ValueError("unexpected error when evaluating score")
+
+
 class State:
     def __init__(self, grid=None, height=0, width=0):
         # maps coordinates to a cell
@@ -39,6 +112,8 @@ class State:
             self.grid = grid
         self.height = height
         self.width = width
+        # let's say vampires go first
+        self.current_player = VAMPIRE
 
     def get_cell(self, x, y):
         return self.grid.get(Coordinates(x, y))
