@@ -102,9 +102,6 @@ class Game:
                1 if player won
                -1 if player lost
         """
-        # draw
-        if state.n_moves >= Game.MAX_MOVES:
-            return EPSILON
         player_units = 0
         opponent_units = 0
         for cell in state.grid.values():
