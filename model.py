@@ -96,7 +96,7 @@ class PolicyHead(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self.conv1 = conv1x1(inplanes, 2)
-        self.bn1 = norm_layer(1)
+        self.bn1 = norm_layer(2)
         self.relu = nn.LeakyReLU(inplace=True)
         self.fc1 = nn.Linear(width * height * 2, width * height * 8)
 
@@ -130,7 +130,7 @@ class ResidualCNN(nn.Module):
         self.res_layers = []
         for _ in range(residual_layers):
             self.res_layers.append(
-                ResidualLayer(inplanes, planes, norm_layer=norm_layer)
+                ResidualLayer(planes, planes, norm_layer=norm_layer)
             )
         self.value_head = ValueHead(
             planes, vh_hidden_layer_size, width, height, norm_layer=norm_layer
@@ -155,7 +155,8 @@ class ResidualCNN(nn.Module):
         for coord, cell in state.grid.items():
             t[max(0, cell.race), coord.x, coord.y] = cell.count
         t[2,:] = state.current_player * torch.ones([self.width, self.height])
-        return self.forward(t)
+        t = t.view(1, 3, self.width, self.height).float()
+        return self(t)
 
 def vamperouge_net(config):
     return ResidualCNN(
