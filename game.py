@@ -1,10 +1,15 @@
 from collections import namedtuple
+from copy import deepcopy
 from dataclasses import dataclass
 from random import random, randint
+
+import torch
 
 HUMAN = 0
 VAMPIRE = 1
 WEREWOLF = -1
+
+EPSILON = 1e-6
 
 
 @dataclass(eq=True, frozen=True)
@@ -35,18 +40,18 @@ class Game:
     MIN_COL = 3
     MAX_ROW = 16
     MAX_COL = 16
-
-    def __init__(self):
-        pass
+    MAX_MOVES = 200
 
     @staticmethod
     def get_action_size():
         return Game.MAX_COL * Game.MAX_ROW * 8
 
-    #TODO check if OK: return state as is
     @staticmethod
     def get_canonical_form(state, player):
-        return state
+        canonical_state = deepcopy(state)
+        for cell in canonical_state.grid.values():
+            cell.race *= player
+        return canonical_state
 
     # TODO for now, generate only one map but should be random
     @staticmethod
@@ -68,6 +73,7 @@ class Game:
     @staticmethod
     def hash_state(state):
         h = str(state.height) + str(state.width)
+        h += str(state.n_moves)
         for x in range(state.width):
             for y in range(state.height):
                 cell = state.get_cell(x, y)
@@ -75,6 +81,15 @@ class Game:
                     continue
                 h += str(x) + str(y) + str(cell.race) + str(cell.count)
         return h
+
+    @staticmethod
+    def get_legal_moves(state, player):
+        return state.get_legal_moves_as_tensor(player)
+
+    @staticmethod
+    def get_next_state(state, player, action):
+        state = state.apply_action(action, player)
+        return state, -player
 
     @staticmethod
     def get_state_score(state, player):
@@ -87,24 +102,39 @@ class Game:
                1 if player won
                -1 if player lost
         """
-        player_has_units = False
-        opponent_has_units = False
+        # draw
+        if state.n_moves >= Game.MAX_MOVES:
+            return EPSILON
+        player_units = 0
+        opponent_units = 0
         for cell in state.grid.values():
             if cell.race == player:
-                player_has_units = True
+                player_units += 1
             if cell.race == -player:
-                opponent_has_units = True
-            if player_has_units and opponent_has_units:
+                opponent_units += 1
+            # game not finished if units for both players and max moves not reached
+            if (
+                state.n_moves < Game.MAX_MOVES
+                and player_units != 0
+                and opponent_units != 0
+            ):
                 return 0
-        if not player_has_units:
-            return -1
-        if not opponent_has_units:
+        # either one player has no unit left or the maximum number of moves has been reached
+        if player_units > opponent_units:
             return 1
-        raise ValueError("unexpected error when evaluating score")
+        if opponent_units > player_units:
+            return -1
+        # draw
+        return EPSILON
+
+    @staticmethod
+    def get_symmetries(state, policy):
+        # TODO generate symmetries
+        return [(state, policy)]
 
 
 class State:
-    def __init__(self, grid=None, height=0, width=0):
+    def __init__(self, grid=None, height=0, width=0, n_moves=0):
         # maps coordinates to a cell
         if grid is None:
             self.grid = {}
@@ -114,6 +144,19 @@ class State:
         self.width = width
         # let's say vampires go first
         self.current_player = VAMPIRE
+        # directions for moves
+        self.transforms = [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+            (0, 1),
+            (-1, 1),
+            (-1, 0),
+        ]
+        # number of moves played
+        self.n_moves = 0
 
     def get_cell(self, x, y):
         return self.grid.get(Coordinates(x, y))
@@ -130,17 +173,7 @@ class State:
 
     def _generate_moves_from_cell(self, coord):
         moves = []
-        transforms = [
-            (0, -1),
-            (-1, -1),
-            (-1, 0),
-            (-1, 1),
-            (0, 1),
-            (1, 1),
-            (1, 0),
-            (1, -1),
-        ]
-        for t in transforms:
+        for t in self.transforms:
             target = self._transform_coordinates(coord, t)
             if target is None:
                 continue
@@ -154,6 +187,33 @@ class State:
                 continue
             moves.extend(self._generate_moves_from_cell(coord))
         return moves
+
+    def _is_coord_transform_valid(self, coord, transform):
+        t_x, t_y = transform
+        x_res = coord.x + t_x
+        if (x_res < 0) or (x_res >= self.width):
+            return False
+        y_res = coord.y + t_y
+        if (y_res < 0) or (y_res >= self.height):
+            return False
+        return True
+
+    def _generate_valid_directions(self, coord):
+        moves = []
+        for i, t in enumerate(self.transforms):
+            if not self._is_coord_transform_valid(coord, t):
+                continue
+            moves.append(i)
+        return moves
+
+    def get_legal_moves_as_tensor(self, race):
+        legal_moves = torch.zeros([Game.get_action_size()], dtype=torch.int32)
+        for coord, cell in self.grid.items():
+            if cell.race != race:
+                continue
+            for direction in self._generate_valid_directions(coord):
+                legal_moves[8 * (coord.x * Game.MAX_ROW + coord.y) + direction] = 1
+        return legal_moves
 
     def _apply_move(self, race, target, count):
         end_cell = self.grid.get(target, Cell(race=race, count=0))
@@ -242,3 +302,14 @@ class State:
             count = 0
         # apply the remaining moves
         self._apply_move(race, last_end_coordinates, count)
+        self.n_moves += 1
+
+    def apply_action(self, action, player):
+        encoded_coord, direction = divmod(action, 8)
+        x, y = divmod(encoded_coord, Game.MAX_ROW)
+        start_coord = Coordinates(x, y)
+        end_coord = self._transform_coordinates(start_coord, self.transforms[direction])
+        move = Move(start_coord, self.grid[start_coord].count, end_coord)
+        next_state = deepcopy(self)
+        next_state.apply_moves([move], player)
+        return next_state

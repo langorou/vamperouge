@@ -48,11 +48,11 @@ class SelfPlay:
 
         while True:
             episode_step += 1
-            state = self.game.get_canonical_form(state, current_player)
+            canon_state = self.game.get_canonical_form(state, current_player)
             temp = int(episode_step < self.config.temperature_threshold)
 
-            policy = self.mcts.get_move_probabilities(state, temp=temp)
-            sym = self.game.get_symmetries(state, policy)
+            policy = self.mcts.get_move_probabilities(canon_state, temp=temp)
+            sym = self.game.get_symmetries(canon_state, policy)
             for s, p in sym:
                 train_samples.append([s, current_player, p, None])
 

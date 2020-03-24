@@ -66,7 +66,7 @@ class MCTS:
             # put 0 in the policy for illegal moves
             self.states_P[s] = self.states_P[s] * legal_moves
             # renormalize the policy
-            policy_sum = np.sum(self.states_P[s])
+            policy_sum = self.states_P[s].sum().item()
             if policy_sum > 0:
                 self.states_P[s] /= policy_sum
             else:

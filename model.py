@@ -156,7 +156,8 @@ class ResidualCNN(nn.Module):
             t[max(0, cell.race), coord.x, coord.y] = cell.count
         t[2,:] = state.current_player * torch.ones([self.width, self.height])
         t = t.view(1, 3, self.width, self.height).float()
-        return self(t)
+        p, v = self(t)
+        return p[0], v[0]
 
 def vamperouge_net(config):
     return ResidualCNN(

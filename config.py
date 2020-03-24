@@ -1,5 +1,5 @@
 # Number of iterations when learning
-num_iters = 1000
+num_iters = 10
 # Number of complete self-play games to simulate during a new iteration
 num_eps = 100
 temperature_threshold = 15
