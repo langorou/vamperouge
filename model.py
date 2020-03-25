@@ -1,12 +1,12 @@
 import os
 import time
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
-import numpy as np
 
 import config
 from progress.bar import Bar
@@ -132,8 +132,6 @@ class ResidualCNN(nn.Module):
     ):
         super(ResidualCNN, self).__init__()
         self.cuda_available = torch.cuda.is_available()
-        if self.cuda_available:
-            self.cuda()
         self.width = width
         self.height = height
         if norm_layer is None:
@@ -146,6 +144,8 @@ class ResidualCNN(nn.Module):
             planes, vh_hidden_layer_size, width, height, norm_layer=norm_layer
         )
         self.policy_head = PolicyHead(planes, width, height, norm_layer=norm_layer)
+        if self.cuda_available:
+            self.cuda()
 
     def forward(self, x):
         out = self.conv_layer(x)
