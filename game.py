@@ -48,7 +48,12 @@ class Game:
 
     @staticmethod
     def get_canonical_form(state, player):
-        canonical_state = deepcopy(state)
+        canonical_state = State(
+            grid=deepcopy(state.grid),
+            height=state.height,
+            width=state.width,
+            n_moves=state.n_moves,
+        )
         for cell in canonical_state.grid.values():
             cell.race *= player
         return canonical_state
@@ -307,6 +312,11 @@ class State:
         start_coord = Coordinates(x, y)
         end_coord = self._transform_coordinates(start_coord, self.transforms[direction])
         move = Move(start_coord, self.grid[start_coord].count, end_coord)
-        next_state = deepcopy(self)
+        next_state = State(
+            grid=deepcopy(self.grid),
+            height=self.height,
+            width=self.width,
+            n_moves=self.n_moves,
+        )
         next_state.apply_moves([move], player)
         return next_state
