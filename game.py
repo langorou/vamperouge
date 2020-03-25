@@ -158,7 +158,7 @@ class State:
             (-1, 0),
         ]
         # number of moves played
-        self.n_moves = 0
+        self.n_moves = n_moves
 
     def get_cell(self, x, y):
         return self.grid.get(Coordinates(x, y))
