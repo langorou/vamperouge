@@ -137,24 +137,22 @@ class ResidualCNN(nn.Module):
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         self.conv_layer = ConvolutionalLayer(inplanes, planes, norm_layer=norm_layer)
-        self.res_layers = []
+        res_layers = []
         for _ in range(residual_layers):
-            self.res_layers.append(ResidualLayer(planes, planes, norm_layer=norm_layer))
+            res_layers.append(ResidualLayer(planes, planes, norm_layer=norm_layer))
+        self.seq_res_layer = nn.Sequential(*res_layers)
         self.value_head = ValueHead(
             planes, vh_hidden_layer_size, width, height, norm_layer=norm_layer
         )
         self.policy_head = PolicyHead(planes, width, height, norm_layer=norm_layer)
+        if self.cuda_available:
+            self.cuda()
 
     def forward(self, x):
         out = self.conv_layer(x)
-        for layer in self.res_layers:
-            out = layer(out)
-
-        value_in = out
-        policy_in = out
-        value_out = self.value_head(value_in)
-        policy_out = self.policy_head(policy_in)
-
+        out = self.seq_res_layer(out)
+        value_out = self.value_head(out)
+        policy_out = self.policy_head(out)
         return policy_out, value_out
 
     def train_from_samples(self, train_samples):
