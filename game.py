@@ -1,8 +1,9 @@
 from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
-from random import random, randint
+from random import randint, random
 
+import numpy as np
 import torch
 
 HUMAN = 0
@@ -89,7 +90,7 @@ class Game:
 
     @staticmethod
     def get_legal_moves(state, player):
-        return state.get_legal_moves_as_tensor(player)
+        return state.get_legal_moves_as_ndarray(player)
 
     @staticmethod
     def get_next_state(state, player, action):
@@ -208,8 +209,8 @@ class State:
             moves.append(i)
         return moves
 
-    def get_legal_moves_as_tensor(self, race):
-        legal_moves = torch.zeros([Game.get_action_size()], dtype=torch.int32)
+    def get_legal_moves_as_ndarray(self, race):
+        legal_moves = np.zeros([Game.get_action_size()], dtype=np.int32)
         for coord, cell in self.grid.items():
             if cell.race != race:
                 continue
