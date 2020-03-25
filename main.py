@@ -6,6 +6,8 @@ from self_play import SelfPlay
 if __name__ == "__main__":
     game = Game()
     neural_net = vamperouge_net(config)
+    if neural_net.cuda_available:
+        neural_net.cuda()
 
     if config.load_model:
         neural_net.load_checkpoint(

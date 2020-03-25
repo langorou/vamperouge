@@ -144,8 +144,6 @@ class ResidualCNN(nn.Module):
             planes, vh_hidden_layer_size, width, height, norm_layer=norm_layer
         )
         self.policy_head = PolicyHead(planes, width, height, norm_layer=norm_layer)
-        if self.cuda_available:
-            self.cuda()
 
     def forward(self, x):
         out = self.conv_layer(x)
