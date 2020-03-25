@@ -136,7 +136,7 @@ class SelfPlay:
             )
             previous_mcts = MCTS(self.game, self.competitor_nn, self.config)
 
-            self.neural_net.train(train_samples)
+            self.neural_net.train_from_samples(train_samples)
             new_mcts = MCTS(self.game, self.neural_net, self.config)
 
             print("battling against previous version")

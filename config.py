@@ -26,3 +26,7 @@ nn_inplanes = 3
 nn_planes = 256
 nn_residual_layers = 19
 nn_vh_hidden_layer_size = 256
+
+train_lr = 0.001
+train_epochs = 10
+train_bs = 64
