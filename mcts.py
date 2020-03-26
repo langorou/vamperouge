@@ -3,10 +3,11 @@ from dataclasses import dataclass
 
 import numpy as np
 
+import game
+
 
 class MCTS:
-    def __init__(self, game, neural_net, config):
-        self.game = game
+    def __init__(self, neural_net, config):
         self.neural_net = neural_net
         self.config = config
         self.states_actions_Q = {}
@@ -25,10 +26,10 @@ class MCTS:
         for _ in range(self.config.num_MCTS_sims):
             self.search(state)
 
-        s = self.game.hash_state(state)
+        s = game.hash_state(state)
         counts = [
             self.states_actions_N.get((s, a), 0)
-            for a in range(self.game.get_action_size())
+            for a in range(game.ACTION_SIZE)
         ]
 
         if temp == 0:
@@ -52,10 +53,10 @@ class MCTS:
         Returns:
             v: the negative of the value of the current state
         """
-        s = self.game.hash_state(state)
+        s = game.hash_state(state)
 
         if s not in self.states_ending_score:
-            self.states_ending_score[s] = self.game.get_state_score(state, 1)
+            self.states_ending_score[s] = game.get_state_score(state, 1)
         if self.states_ending_score[s] != 0:
             # terminal node: outcome propagated up the search path
             return -self.states_ending_score[s]
@@ -63,7 +64,7 @@ class MCTS:
         # leaf node: neural net is used to get an initial policy and value for the state
         if s not in self.states_P:
             self.states_P[s], v = self.neural_net.predict(state)
-            legal_moves = self.game.get_legal_moves(state, 1)
+            legal_moves = game.get_legal_moves(state, 1)
             # put 0 in the policy for illegal moves
             self.states_P[s] = self.states_P[s] * legal_moves
             # renormalize the policy
@@ -89,7 +90,7 @@ class MCTS:
         best_move = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.game.get_action_size()):
+        for a in range(game.ACTION_SIZE):
             if not legal_moves[a]:
                 continue
             Q = self.states_actions_Q.get((s, a), 0)
@@ -104,8 +105,8 @@ class MCTS:
                 best_move = a
 
         a = best_move
-        next_state, next_player = self.game.get_next_state(state, 1, a)
-        next_state = self.game.get_canonical_form(next_state, next_player)
+        next_state, next_player = game.get_next_state(state, 1, a)
+        next_state = game.get_canonical_form(next_state, next_player)
 
         # the value is retrieved from the next state
         v = self.search(next_state)

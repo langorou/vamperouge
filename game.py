@@ -42,10 +42,7 @@ MIN_COL = 3
 MAX_ROW = 16
 MAX_COL = 16
 MAX_MOVES = 120
-
-
-def get_action_size():
-    return MAX_COL * MAX_ROW * 8
+ACTION_SIZE = MAX_COL * MAX_ROW * 8
 
 
 def get_canonical_form(state, player):
@@ -320,7 +317,7 @@ class State:
 
     @jit
     def get_legal_moves_as_ndarray(self, race):
-        legal_moves = np.zeros([get_action_size()], dtype=np.int32)
+        legal_moves = np.zeros([ACTION_SIZE], dtype=np.int32)
         for coord, cell in self.grid.items():
             if cell.race != race:
                 continue

@@ -7,6 +7,7 @@ from random import shuffle
 
 import numpy as np
 
+import game
 from arena import Arena
 from mcts import MCTS
 from model import vamperouge_net
@@ -19,13 +20,12 @@ class SelfPlay:
     Implementation of the self-play and training of the neural network.
     """
 
-    def __init__(self, game, neural_net, config):
-        self.game = game
+    def __init__(self, neural_net, config):
         self.neural_net = neural_net
         # competitor neural network
         self.competitor_nn = vamperouge_net(config)
         self.config = config
-        self.mcts = MCTS(game, neural_net, config)
+        self.mcts = MCTS(neural_net, config)
         self.train_samples_history = []
         self.skip_first_self_play = False
 
@@ -44,26 +44,26 @@ class SelfPlay:
                            the player eventually won the game, else -1.
         """
         train_samples = []
-        state = self.game.get_init_state()
+        state = game.get_init_state()
         current_player = 1
         episode_step = 0
 
         while True:
             episode_step += 1
-            canon_state = self.game.get_canonical_form(state, current_player)
+            canon_state = game.get_canonical_form(state, current_player)
             temp = int(episode_step < self.config.temperature_threshold)
 
             policy = self.mcts.get_move_probabilities(canon_state, temp=temp)
-            sym = self.game.get_symmetries(canon_state, policy)
+            sym = game.get_symmetries(canon_state, policy)
             for s, p in sym:
                 train_samples.append([s, current_player, p, None])
 
             move = np.random.choice(len(policy), p=policy)
-            state, current_player = self.game.get_next_state(
+            state, current_player = game.get_next_state(
                 state, current_player, move
             )
 
-            r = self.game.get_state_score(state, current_player)
+            r = game.get_state_score(state, current_player)
 
             if r != 0:
                 return [
@@ -91,7 +91,7 @@ class SelfPlay:
 
                 for episode in range(self.config.num_eps):
                     # reset search tree
-                    self.mcts = MCTS(self.game, self.neural_net, self.config)
+                    self.mcts = MCTS(self.neural_net, self.config)
                     iteration_train_samples += self.run_episode()
 
                     episode_time.update(time.time() - end)
@@ -136,16 +136,15 @@ class SelfPlay:
             self.competitor_nn.load_checkpoint(
                 folder=self.config.checkpoint, filename="temp.pth.tar"
             )
-            previous_mcts = MCTS(self.game, self.competitor_nn, self.config)
+            previous_mcts = MCTS(self.competitor_nn, self.config)
 
             self.neural_net.train_from_samples(train_samples)
-            new_mcts = MCTS(self.game, self.neural_net, self.config)
+            new_mcts = MCTS(self.neural_net, self.config)
 
             print("battling against previous version")
             arena = Arena(
                 lambda x: np.argmax(previous_mcts.get_move_probabilities(x, temp=0)),
                 lambda x: np.argmax(new_mcts.get_move_probabilities(x, temp=0)),
-                self.game,
             )
             prev_wins, new_wins, draws = arena.play_games(self.config.arena_compare)
 

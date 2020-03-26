@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 
+import game
 from progress.bar import Bar
 from progress.misc import AverageMeter
 
@@ -11,10 +12,9 @@ class Arena:
     Implementation of a battle between two agents.
     """
 
-    def __init__(self, player1, player2, game):
+    def __init__(self, player1, player2):
         self.player1 = player1
         self.player2 = player2
-        self.game = game
 
     def play_game(self):
         """
@@ -28,23 +28,23 @@ class Arena:
         """
         players = [self.player2, None, self.player1]
         current_player = 1
-        state = self.game.get_init_state()
+        state = game.get_init_state()
 
-        while self.game.get_state_score(state, current_player) == 0:
+        while game.get_state_score(state, current_player) == 0:
             move = players[current_player + 1](
-                self.game.get_canonical_form(state, current_player)
+                game.get_canonical_form(state, current_player)
             )
-            legal_moves = self.game.get_legal_moves(
-                self.game.get_canonical_form(state, current_player), 1
+            legal_moves = game.get_legal_moves(
+                game.get_canonical_form(state, current_player), 1
             )
             if legal_moves[move] == 0:
                 print(move)
                 assert legal_moves[move] > 0
-            state, current_player = self.game.get_next_state(
+            state, current_player = game.get_next_state(
                 state, current_player, move
             )
 
-        return current_player * self.game.get_state_score(state, current_player)
+        return current_player * game.get_state_score(state, current_player)
 
     def play_games(self, num):
         """

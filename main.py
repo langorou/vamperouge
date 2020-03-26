@@ -11,7 +11,7 @@ if __name__ == "__main__":
             config.load_folder_file[0], config.load_folder_file[1]
         )
 
-    self_play = SelfPlay(game, neural_net, config)
+    self_play = SelfPlay(neural_net, config)
     if config.load_model:
         print("Load train samples from file")
         self_play.load_train_samples()
