@@ -1,7 +1,9 @@
 # Number of iterations when learning
-num_iters = 10
+# TODO back to 10 when it works
+num_iters = 2
 # Number of complete self-play games to simulate during a new iteration
-num_eps = 100
+# TODO back to 100 when it works
+num_eps = 2
 temperature_threshold = 15
 # During arena playoff new neural net will be accepted if threshold or more of games are won
 update_threshold = 0.6

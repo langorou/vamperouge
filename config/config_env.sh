@@ -5,4 +5,5 @@ source activate vamperouge
 cd $PBS_O_WORKDIR
 conda install pytorch cudatoolkit=9.2 -c pytorch
 conda install numpy
+conda install numba
 conda env export > config/environment.yml # save conda environment description
