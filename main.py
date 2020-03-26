@@ -1,10 +1,9 @@
 import config
-from game import Game
+import game
 from model import vamperouge_net
 from self_play import SelfPlay
 
 if __name__ == "__main__":
-    game = Game()
     neural_net = vamperouge_net(config)
 
     if config.load_model:
