@@ -131,16 +131,16 @@ class Game:
         # draw
         return EPSILON
 
-    @jit
     @staticmethod
+    @jit
     def _grid_to_ndarray(state):
         board = np.ndarray([state.width, state.height], dtype=Cell)
         for coord, cell in state.grid.items():
             board[coord.x, coord.y] = Cell(cell.race, cell.count)
         return board
 
-    @jit
     @staticmethod
+    @jit
     def _reencode_policy(policy, width, height):
         """
         reencode policy as if width and height were the maximum dimensions
@@ -154,8 +154,8 @@ class Game:
             new_policy[8 * (x * height + y) + direction] = prob
         return new_policy
 
-    @jit
     @staticmethod
+    @jit
     def _encodeback_policy(policy, width, height):
         """
         encode back a reencoded policy
@@ -172,8 +172,8 @@ class Game:
                     ]
         return new_policy
 
-    @jit
     @staticmethod
+    @jit
     def _policy_to_ndarray(policy, width, height):
         new_policy = Game._reencode_policy(policy, width, height)
         policy_board = np.reshape(new_policy, (width, height, 8))
@@ -191,8 +191,8 @@ class Game:
                 policy_4d[x, y, 2, 2] = probs[4]
         return policy_4d
 
-    @jit
     @staticmethod
+    @jit
     def _ndarray_to_policy(policy_4d):
         policy = policy_4d.shape[0] * policy_4d.shape[1] * 8 * [0]
         for x, col in enumerate(policy_4d):
@@ -207,8 +207,8 @@ class Game:
                 policy[8 * (x * policy_4d.shape[1] + y) + 4] = tile[2, 2]
         return Game._encodeback_policy(policy, policy_4d.shape[0], policy_4d.shape[1])
 
-    @jit
     @staticmethod
+    @jit
     def _ndarray_to_grid(board):
         grid = {}
         for x, col in enumerate(board):
@@ -218,8 +218,8 @@ class Game:
                 grid[Coordinates(x, y)] = Cell(cell.race, cell.count)
         return grid
 
-    @jit
     @staticmethod
+    @jit
     def get_symmetries(state, policy):
         board = Game._grid_to_ndarray(state)
         policy_board = Game._policy_to_ndarray(policy, state.width, state.height)
