@@ -315,7 +315,6 @@ class State:
             moves.append(i)
         return moves
 
-    @jit
     def get_legal_moves_as_ndarray(self, race):
         legal_moves = np.zeros([ACTION_SIZE], dtype=np.int32)
         for coord, cell in self.grid.items():
