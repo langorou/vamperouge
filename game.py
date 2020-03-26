@@ -5,6 +5,7 @@ from random import randint, random
 
 import numpy as np
 import torch
+from numba import jit
 
 HUMAN = 0
 VAMPIRE = 1
@@ -41,7 +42,7 @@ class Game:
     MIN_COL = 3
     MAX_ROW = 16
     MAX_COL = 16
-    MAX_MOVES = 200
+    MAX_MOVES = 120
 
     @staticmethod
     def get_action_size():
@@ -130,10 +131,125 @@ class Game:
         # draw
         return EPSILON
 
+    @jit
+    @staticmethod
+    def _grid_to_ndarray(state):
+        board = np.ndarray([state.width, state.height], dtype=Cell)
+        for coord, cell in state.grid.items():
+            board[coord.x, coord.y] = Cell(cell.race, cell.count)
+        return board
+
+    @jit
+    @staticmethod
+    def _reencode_policy(policy, width, height):
+        """
+        reencode policy as if width and height were the maximum dimensions
+        """
+        new_policy = width * height * 8 * [0]
+        for i, prob in enumerate(policy):
+            encoded_coord, direction = divmod(i, 8)
+            x, y = divmod(encoded_coord, Game.MAX_ROW)
+            if x >= width or y >= height:
+                continue
+            new_policy[8 * (x * height + y) + direction] = prob
+        return new_policy
+
+    @jit
+    @staticmethod
+    def _encodeback_policy(policy, width, height):
+        """
+        encode back a reencoded policy
+        """
+        new_policy = Game.MAX_COL * Game.MAX_ROW * 8 * [0]
+        for x in range(Game.MAX_COL):
+            for y in range(Game.MAX_ROW):
+                for d in range(8):
+                    if x >= width or y >= height:
+                        new_policy[8 * (x * Game.MAX_ROW + y) + d] = 0
+                        continue
+                    new_policy[8 * (x * Game.MAX_ROW + y) + d] = policy[
+                        8 * (x * height + y) + d
+                    ]
+        return new_policy
+
+    @jit
+    @staticmethod
+    def _policy_to_ndarray(policy, width, height):
+        new_policy = Game._reencode_policy(policy, width, height)
+        policy_board = np.reshape(new_policy, (width, height, 8))
+        policy_4d = np.ndarray([width, height, 3, 3], dtype=np.int32)
+        for x, col in enumerate(policy_board):
+            for y, probs in enumerate(col):
+                policy_4d[x, y, 0, 0] = probs[0]
+                policy_4d[x, y, 1, 0] = probs[1]
+                policy_4d[x, y, 2, 0] = probs[2]
+                policy_4d[x, y, 0, 1] = probs[7]
+                policy_4d[x, y, 1, 1] = 0
+                policy_4d[x, y, 2, 1] = probs[3]
+                policy_4d[x, y, 0, 2] = probs[6]
+                policy_4d[x, y, 1, 2] = probs[5]
+                policy_4d[x, y, 2, 2] = probs[4]
+        return policy_4d
+
+    @jit
+    @staticmethod
+    def _ndarray_to_policy(policy_4d):
+        policy = policy_4d.shape[0] * policy_4d.shape[1] * 8 * [0]
+        for x, col in enumerate(policy_4d):
+            for y, tile in enumerate(col):
+                policy[8 * (x * policy_4d.shape[1] + y) + 0] = tile[0, 0]
+                policy[8 * (x * policy_4d.shape[1] + y) + 1] = tile[1, 0]
+                policy[8 * (x * policy_4d.shape[1] + y) + 2] = tile[2, 0]
+                policy[8 * (x * policy_4d.shape[1] + y) + 7] = tile[0, 1]
+                policy[8 * (x * policy_4d.shape[1] + y) + 3] = tile[2, 1]
+                policy[8 * (x * policy_4d.shape[1] + y) + 6] = tile[0, 2]
+                policy[8 * (x * policy_4d.shape[1] + y) + 5] = tile[1, 2]
+                policy[8 * (x * policy_4d.shape[1] + y) + 4] = tile[2, 2]
+        return Game._encodeback_policy(policy, policy_4d.shape[0], policy_4d.shape[1])
+
+    @jit
+    @staticmethod
+    def _ndarray_to_grid(board):
+        grid = {}
+        for x, col in enumerate(board):
+            for y, cell in enumerate(col):
+                if cell is None:
+                    continue
+                grid[Coordinates(x, y)] = Cell(cell.race, cell.count)
+        return grid
+
+    @jit
     @staticmethod
     def get_symmetries(state, policy):
-        # TODO generate symmetries
-        return [(state, policy)]
+        board = Game._grid_to_ndarray(state)
+        policy_board = Game._policy_to_ndarray(policy, state.width, state.height)
+        symmetries = []
+
+        for rot in range(1, 5):
+            for mirrored in (False, True):
+                sym_board = np.rot90(board, rot)
+                sym_policy_board = np.rot90(policy_board, rot)
+                sym_policy_board = np.reshape(
+                    [np.rot90(tile, rot) for col in sym_policy_board for tile in col],
+                    (sym_board.shape[0], sym_board.shape[1], 3, 3),
+                )
+                if mirrored:
+                    sym_board = np.fliplr(sym_board)
+                    sym_policy_board = np.fliplr(sym_policy_board)
+                    sym_policy_board = np.reshape(
+                        [np.fliplr(tile) for col in sym_policy_board for tile in col],
+                        (sym_board.shape[0], sym_board.shape[1], 3, 3),
+                    )
+                sym_state = State(
+                    grid=Game._ndarray_to_grid(sym_board),
+                    height=sym_board.shape[1],
+                    width=sym_board.shape[0],
+                    n_moves=state.n_moves,
+                )
+                sym_policy = Game._ndarray_to_policy(sym_policy_board)
+                symmetries.append((sym_state, sym_policy))
+
+        return symmetries
 
 
 class State:
@@ -209,6 +325,7 @@ class State:
             moves.append(i)
         return moves
 
+    @jit
     def get_legal_moves_as_ndarray(self, race):
         legal_moves = np.zeros([Game.get_action_size()], dtype=np.int32)
         for coord, cell in self.grid.items():
