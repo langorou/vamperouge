@@ -2,7 +2,6 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from numba import jit
 
 
 class MCTS:
@@ -18,7 +17,6 @@ class MCTS:
         self.states_ending_score = {}
         self.states_valid_moves = {}
 
-    @jit
     def get_move_probabilities(self, state, temp=1):
         """
         Perform simulations of MCTS starting from the given state, then
@@ -43,7 +41,6 @@ class MCTS:
         counts_sum = float(sum(counts))
         return [x / counts_sum for x in counts]
 
-    @jit
     def search(self, state):
         """
         One iteration of MCTS. This method is recursively called until a
