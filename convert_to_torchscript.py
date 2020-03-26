@@ -13,12 +13,12 @@ if __name__ == "__main__":
 
     # get instance of model
     model = vamperouge_net(config)
+    model.cpu()
     model.load_checkpoint("models", args.model_filename)
 
     # get example input
     example = torch.rand(1, 3, config.board_width, config.board_height)
-    example = example.contiguous().cuda()
-    
+
     # generate a torch.jit.ScriptModule via tracing
     traced_script_module = torch.jit.trace(model, example)
 
