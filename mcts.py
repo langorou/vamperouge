@@ -1,4 +1,5 @@
 import math
+import random
 from dataclasses import dataclass
 
 import numpy as np
@@ -63,7 +64,10 @@ class MCTS:
 
         # leaf node: neural net is used to get an initial policy and value for the state
         if s not in self.states_P:
-            self.states_P[s], v = self.neural_net.predict(state)
+            # transform state by using a randomly selected symmetry before it is evaluated
+            # by the NN, so that the MC evaluation is averaged over different biases
+            transformed_state = random.choice(game.get_symmetries(state))
+            self.states_P[s], v = self.neural_net.predict(transformed_state)
             legal_moves = game.get_legal_moves(state, 1)
             # put 0 in the policy for illegal moves
             self.states_P[s] = self.states_P[s] * legal_moves

@@ -210,34 +210,40 @@ def _ndarray_to_grid(board):
 
 
 @jit
-def get_symmetries(state, policy):
+def get_symmetries(state, policy=None):
     board = _grid_to_ndarray(state)
-    policy_board = _policy_to_ndarray(policy, state.width, state.height)
+    if policy is not None:
+        policy_board = _policy_to_ndarray(policy, state.width, state.height)
     symmetries = []
 
     for rot in range(1, 5):
         for mirrored in (False, True):
             sym_board = np.rot90(board, rot)
-            sym_policy_board = np.rot90(policy_board, rot)
-            sym_policy_board = np.reshape(
-                [np.rot90(tile, rot) for col in sym_policy_board for tile in col],
-                (sym_board.shape[0], sym_board.shape[1], 3, 3),
-            )
-            if mirrored:
-                sym_board = np.fliplr(sym_board)
-                sym_policy_board = np.fliplr(sym_policy_board)
+            if policy is not None:
+                sym_policy_board = np.rot90(policy_board, rot)
                 sym_policy_board = np.reshape(
-                    [np.fliplr(tile) for col in sym_policy_board for tile in col],
+                    [np.rot90(tile, rot) for col in sym_policy_board for tile in col],
                     (sym_board.shape[0], sym_board.shape[1], 3, 3),
                 )
+            if mirrored:
+                sym_board = np.fliplr(sym_board)
+                if policy is not None:
+                    sym_policy_board = np.fliplr(sym_policy_board)
+                    sym_policy_board = np.reshape(
+                        [np.fliplr(tile) for col in sym_policy_board for tile in col],
+                        (sym_board.shape[0], sym_board.shape[1], 3, 3),
+                    )
             sym_state = State(
                 grid=_ndarray_to_grid(sym_board),
                 height=sym_board.shape[1],
                 width=sym_board.shape[0],
                 n_moves=state.n_moves,
             )
-            sym_policy = _ndarray_to_policy(sym_policy_board)
-            symmetries.append((sym_state, sym_policy))
+            if policy is not None:
+                sym_policy = _ndarray_to_policy(sym_policy_board)
+                symmetries.append((sym_state, sym_policy))
+            else:
+                symmetries.append(sym_state)
 
     return symmetries
 
