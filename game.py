@@ -306,6 +306,7 @@ class State:
         # apply the remaining moves
         self._apply_move(race, last_end_coordinates, count)
         self.n_moves += 1
+        self.current_player *= -1
 
     def apply_action(self, action, player):
         encoded_coord, direction = divmod(action, 8)
