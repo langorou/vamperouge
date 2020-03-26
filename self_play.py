@@ -9,6 +9,7 @@ import numpy as np
 
 from arena import Arena
 from mcts import MCTS
+from model import vamperouge_net
 from progress.bar import Bar
 from progress.misc import AverageMeter
 
@@ -21,7 +22,8 @@ class SelfPlay:
     def __init__(self, game, neural_net, config):
         self.game = game
         self.neural_net = neural_net
-        self.competitor_nn = None
+        # competitor neural network
+        self.competitor_nn = vamperouge_net(config)
         self.config = config
         self.mcts = MCTS(game, neural_net, config)
         self.train_samples_history = []
