@@ -40,7 +40,9 @@ class Arena:
             if legal_moves[move] == 0:
                 print(move)
                 assert legal_moves[move] > 0
-            state, current_player = self.game.getNextState(state, current_player, move)
+            state, current_player = self.game.get_next_state(
+                state, current_player, move
+            )
 
         return current_player * self.game.get_state_score(state, current_player)
 
