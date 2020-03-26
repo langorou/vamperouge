@@ -98,7 +98,7 @@ class Arena:
             else:
                 draws += 1
 
-            eps += 1
+            episode += 1
             episode_time.update(time.time() - end)
             end = time.time()
             bar.suffix = "({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}".format(
