@@ -13,8 +13,8 @@ if __name__ == "__main__":
 
     # get instance of model
     model = vamperouge_net(config)
-    model.cpu()
     model.load_checkpoint("models", args.model_filename)
+    model.cpu()
 
     # get example input
     example = torch.rand(1, 3, config.board_width, config.board_height)
