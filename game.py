@@ -124,7 +124,6 @@ def get_state_score(state, player):
     return EPSILON
 
 
-@jit
 def _grid_to_ndarray(state):
     board = np.ndarray([state.width, state.height], dtype=Cell)
     for coord, cell in state.grid.items():
@@ -209,7 +208,6 @@ def _ndarray_to_grid(board):
     return grid
 
 
-@jit
 def get_symmetries(state, policy=None):
     board = _grid_to_ndarray(state)
     if policy is not None:
@@ -257,8 +255,6 @@ class State:
             self.grid = grid
         self.height = height
         self.width = width
-        # let's say vampires go first
-        self.current_player = VAMPIRE
         # directions for moves
         self.transforms = [
             (-1, -1),
@@ -418,7 +414,6 @@ class State:
         # apply the remaining moves
         self._apply_move(race, last_end_coordinates, count)
         self.n_moves += 1
-        self.current_player *= -1
 
     def apply_action(self, action, player):
         encoded_coord, direction = divmod(action, 8)

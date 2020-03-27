@@ -9,6 +9,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 import config
+import game
 from progress.bar import Bar
 from progress.misc import AverageMeter
 
@@ -231,8 +232,14 @@ class ResidualCNN(nn.Module):
         t = torch.zeros([len(states), 3, self.width, self.height], dtype=torch.int32)
         for i, state in enumerate(states):
             for coord, cell in state.grid.items():
-                t[i, max(0, cell.race), coord.x, coord.y] = cell.count
-            t[i, 2, :] = state.current_player * torch.ones([self.width, self.height])
+                if cell.race == game.VAMPIRE:
+                    t[i, 0, coord.x, coord.y] = cell.count
+                elif cell.race == game.WEREWOLF:
+                    t[i, 1, coord.x, coord.y] = cell.count
+                elif cell.race == game.HUMAN:
+                    t[i, 2, coord.x, coord.y] = cell.count
+        # t doesn't have information about the current player because the states are always
+        # canonical here, so vampires are the current players
         return t.float()
 
     def predict(self, state):
