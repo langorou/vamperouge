@@ -131,7 +131,6 @@ def _grid_to_ndarray(state):
     return board
 
 
-@jit
 def _reencode_policy(policy, width, height):
     """
     reencode policy as if width and height were the maximum dimensions
@@ -146,7 +145,6 @@ def _reencode_policy(policy, width, height):
     return new_policy
 
 
-@jit
 def _encodeback_policy(policy, width, height):
     """
     encode back a reencoded policy
@@ -162,7 +160,6 @@ def _encodeback_policy(policy, width, height):
     return new_policy
 
 
-@jit
 def _policy_to_ndarray(policy, width, height):
     new_policy = _reencode_policy(policy, width, height)
     policy_board = np.reshape(new_policy, (width, height, 8))
@@ -181,7 +178,6 @@ def _policy_to_ndarray(policy, width, height):
     return policy_4d
 
 
-@jit
 def _ndarray_to_policy(policy_4d):
     policy = policy_4d.shape[0] * policy_4d.shape[1] * 8 * [0]
     for x, col in enumerate(policy_4d):
@@ -197,7 +193,6 @@ def _ndarray_to_policy(policy_4d):
     return _encodeback_policy(policy, policy_4d.shape[0], policy_4d.shape[1])
 
 
-@jit
 def _ndarray_to_grid(board):
     grid = {}
     for x, col in enumerate(board):
