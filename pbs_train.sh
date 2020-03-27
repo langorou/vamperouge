@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #PBS -S /bin/bash
-#PBS -N vamperouge_percival_test
+#PBS -N vamperouge_percival
 #PBS -j oe
-#PBS -l walltime=00:15:00
+#PBS -l walltime=10:00:00
 #PBS -q gpuq -l select=1:ncpus=12:ngpus=1:gputype=p100:mem=100gb
 #PBS -M corentin.dupret@student.ecp.fr
 #PBS -m abe

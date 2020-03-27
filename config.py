@@ -1,17 +1,15 @@
 # Number of iterations when learning
-# TODO back to 10 when it works
-num_iters = 2
+num_iters = 10
 # Number of complete self-play games to simulate during a new iteration
-# TODO back to 100 when it works
-num_eps = 2
+num_eps = 100
 temperature_threshold = 15
 # During arena playoff new neural net will be accepted if threshold or more of games are won
-update_threshold = 0.6
-# Number of game examples to train the neural networks.
+update_threshold = 0.55
+# Number of game samples to train the neural networks
 max_queue_length = 200000
-# Number of games moves for MCTS to simulate.
+# Number of games moves for MCTS to simulate
 num_MCTS_sims = 25
-# Number of games to play during arena play to determine if new net will be accepted.
+# Number of games to play during arena play to determine if new net will be accepted
 arena_compare = 40
 cpuct = 1
 checkpoint = "./temp/"
