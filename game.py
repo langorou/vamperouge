@@ -5,7 +5,6 @@ from random import randint, random
 
 import numpy as np
 import torch
-from numba import jit
 
 HUMAN = 0
 VAMPIRE = 1
