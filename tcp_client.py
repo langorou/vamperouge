@@ -1,4 +1,5 @@
 import socket
+import time
 
 import numpy as np
 
@@ -162,10 +163,14 @@ class TcpClient:
         self.init_game()
 
         def player(state):
+            begin = time.time()
             race = -1 if self.is_werewolf else 1
             canon_state = game.get_canonical_form(state, race)
             action = np.argmax(self.mcts.get_move_probabilities(canon_state, temp=0))
-            return state.action_to_move(action)
+            move = state.action_to_move(action)
+            end = time.time()
+            print(f"computed move in {end-begin}s")
+            return move
 
         self.player = player
         self.play()

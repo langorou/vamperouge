@@ -1,5 +1,5 @@
 # Number of iterations when learning
-num_iters = 10
+num_iters = 100
 # Number of complete self-play games to simulate during a new iteration
 num_eps = 100
 temperature_threshold = 15
@@ -22,7 +22,7 @@ board_height = 16
 
 nn_inplanes = 3
 nn_planes = 256
-nn_residual_layers = 19
+nn_residual_layers = 4
 nn_vh_hidden_layer_size = 256
 
 train_lr = 0.001

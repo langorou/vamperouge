@@ -1,7 +1,8 @@
 from collections import namedtuple
 from copy import deepcopy
 from dataclasses import dataclass
-from random import randint, random
+from itertools import product
+from random import choice, randint, random, randrange, shuffle
 
 import numpy as np
 import torch
@@ -40,6 +41,9 @@ MIN_ROW = 3
 MIN_COL = 3
 MAX_ROW = 16
 MAX_COL = 16
+MIN_MONSTERS = 3
+MAX_MONSTERS = 10
+MIN_HUMAN_GROUPS = 1
 MAX_MOVES = 120
 ACTION_SIZE = MAX_COL * MAX_ROW * 8
 
@@ -56,20 +60,61 @@ def get_canonical_form(state, player):
     return canonical_state
 
 
-# TODO for now, generate only one map but should be random
+def _symmetry_diagonal(coord, w, h):
+    return Coordinates(coord.y, coord.x)
+
+
+def _symmetry_center(coord, w, h):
+    return Coordinates(h - 1 - coord.x, w - 1 - coord.y)
+
+
+def _symmetry_axial(coord, w, h):
+    return Coordinates(coord.x, h - 1 - coord.y)
+
+
+def _generate_random_grid(h, w, humans, monsters):
+    """
+    generate a random grid of size h x w, with
+    humans being half the number of group of humans (for symmetry)
+    and monsters being the number of monsters
+    """
+    grid = {}
+    # get symmetry function
+    symmetries = [_symmetry_axial]
+    if h == w:
+        symmetries = [_symmetry_axial, _symmetry_center, _symmetry_diagonal]
+    sym = choice(symmetries)
+    # place humans
+    possible_coords = list(product(range(w), range(h)))
+    shuffle(possible_coords)
+    for x, y in possible_coords[:humans]:
+        coord = Coordinates(x, y)
+        count = randrange(1, 5 + monsters)
+        grid[coord] = Cell(HUMAN, count)
+        # there is a chance that the random sequence contains a cell and
+        # its symmetrie but whatever
+        sym_coord = sym(coord, w, h)
+        grid[sym_coord] = Cell(HUMAN, count)
+    # place monsters
+    x, y = choice(possible_coords)
+    coord = Coordinates(x, y)
+    while True:
+        sym_coord = sym(coord, w, h)
+        if coord != sym_coord:
+            break
+        x, y = choice(possible_coords)
+        coord = Coordinates(x, y)
+    grid[coord] = Cell(VAMPIRE, monsters)
+    grid[sym_coord] = Cell(WEREWOLF, monsters)
+    return grid
+
+
 def get_init_state():
-    # w = randint(MIN_COL, MAX_COL)
-    # h = randint(MIN_ROW, MIN_COL)
-    h = 5
-    w = 10
-    grid = {
-        Coordinates(2, 2): Cell(HUMAN, 4),
-        Coordinates(9, 0): Cell(HUMAN, 2),
-        Coordinates(9, 2): Cell(HUMAN, 1),
-        Coordinates(9, 4): Cell(HUMAN, 2),
-        Coordinates(4, 1): Cell(WEREWOLF, 4),
-        Coordinates(4, 3): Cell(VAMPIRE, 4),
-    }
+    w = randint(MIN_COL, MAX_COL)
+    h = randint(MIN_ROW, MAX_ROW)
+    humans = randint(MIN_HUMAN_GROUPS, w * h // 4)
+    monsters = randint(MIN_MONSTERS, MAX_MONSTERS)
+    grid = _generate_random_grid(h, w, humans, monsters)
     return State(grid=grid, height=h, width=w)
 
 
