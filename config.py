@@ -19,7 +19,7 @@ load_samples = True
 load_samples_folder_file = ("temp", "checkpoint_3.pth.tar.samples")
 skip_first_self_play = False
 delete_old_samples = True
-num_iters_for_train_samples_history = 10
+num_iters_for_train_samples_history = 5
 
 board_width = 16
 board_height = 16
