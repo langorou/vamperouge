@@ -14,8 +14,8 @@ arena_compare = 40
 cpuct = 1
 checkpoint = "./temp/"
 load_model = False
-load_folder_file = ("/dev/models/8x100x50", "best.pth.tar")
-num_iters_for_train_samples_history = 20
+load_folder_file = ("models", "best.pth.tar")
+num_iters_for_train_samples_history = 10
 
 board_width = 16
 board_height = 16
