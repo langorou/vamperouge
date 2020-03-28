@@ -2,7 +2,7 @@
 num_iters = 100
 # Number of complete self-play games to simulate during a new iteration
 num_eps = 100
-temperature_threshold = 15
+temperature_threshold = 30
 # During arena playoff new neural net will be accepted if threshold or more of games are won
 update_threshold = 0.55
 # Number of game samples to train the neural networks
@@ -25,6 +25,6 @@ nn_planes = 256
 nn_residual_layers = 4
 nn_vh_hidden_layer_size = 256
 
-train_lr = 0.001
+train_lr = 0.002
 train_epochs = 10
 train_bs = 64
