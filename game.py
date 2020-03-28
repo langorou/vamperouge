@@ -266,6 +266,23 @@ class State:
     def get_cell(self, x, y):
         return self.grid.get(Coordinates(x, y))
 
+    def hum(self, coords):
+        # this is an old command, not supported anymore
+        pass
+
+    def upd(self, changes):
+        for coord, humans, vampires, werewolves in changes:
+            if humans > 0 and vampires == 0 and werewolves == 0:
+                self.grid[coord] = Cell(HUMAN, humans)
+            elif humans == 0 and vampires > 0 and werewolves == 0:
+                self.grid[coord] = Cell(VAMPIRE, vampires)
+            elif humans == 0 and vampires == 0 and werewolves > 0:
+                self.grid[coord] = Cell(WEREWOLF, werewolves)
+            elif humans == 0 and vampires == 0 and werewolves == 0:
+                self.grid.pop(coord, None)
+            else:
+                raise RuntimeError("impossible change, max one race per cell")
+
     def _transform_coordinates(self, coord, transform):
         t_x, t_y = transform
         x_res = coord.x + t_x
@@ -409,12 +426,18 @@ class State:
         self._apply_move(race, last_end_coordinates, count)
         self.n_moves += 1
 
-    def apply_action(self, action, player):
+    def action_to_move(self, action):
         encoded_coord, direction = divmod(action, 8)
         x, y = divmod(encoded_coord, MAX_ROW)
+        x = int(x)
+        y = int(y)
+        direction = int(direction)
         start_coord = Coordinates(x, y)
         end_coord = self._transform_coordinates(start_coord, self.transforms[direction])
-        move = Move(start_coord, self.grid[start_coord].count, end_coord)
+        return Move(start_coord, self.grid[start_coord].count, end_coord)
+
+    def apply_action(self, action, player):
+        move = self.action_to_move(action)
         next_state = State(
             grid=deepcopy(self.grid),
             height=self.height,
