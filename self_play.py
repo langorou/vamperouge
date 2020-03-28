@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 import time
@@ -27,6 +28,8 @@ class SelfPlay:
         self.config = config
         self.mcts = MCTS(neural_net, config)
         self.train_samples_history = []
+        if self.config.load_samples:
+            self.load_train_samples()
         self.skip_first_self_play = False
 
     def run_episode(self):
@@ -170,6 +173,16 @@ class SelfPlay:
     def get_checkpoint_file(self, iteration):
         return "checkpoint_" + str(iteration) + ".pth.tar"
 
+    def delete_train_samples(self, iteration):
+        filename = os.path.join(
+            self.config.checkpoint, self.get_checkpoint_file(iteration) + ".samples"
+        )
+        try:
+            os.remove(filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+
     def save_train_samples(self, iteration):
         folder = self.config.checkpoint
         if not os.path.exists(folder):
@@ -180,12 +193,13 @@ class SelfPlay:
         with open(filename, "wb+") as f:
             Pickler(f).dump(self.train_samples_history)
         f.closed
+        if self.config.delete_old_samples:
+            self.delete_train_samples(iteration-1)
 
     def load_train_samples(self):
-        model_file = os.path.join(
-            self.config.load_folder_file[0], self.config.load_folder_file[1]
+        samples_file = os.path.join(
+            self.config.load_samples_folder_file[0], self.config.load_samples_folder_file[1]
         )
-        samples_file = model_file + ".samples"
         if not os.path.isfile(samples_file):
             print(samples_file)
             r = input("File with train samples not found. Continue? [y|n]")
@@ -196,5 +210,5 @@ class SelfPlay:
             with open(samples_file, "rb") as f:
                 self.train_samples_history = Unpickler(f).load()
             f.closed
-            # examples based on the model were already collected (loaded)
-            self.skip_first_self_play = True
+            # examples based on the model were already collected (loaded)?
+            self.skip_first_self_play = self.config.skip_first_self_play

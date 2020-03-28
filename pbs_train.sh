@@ -3,7 +3,7 @@
 #PBS -S /bin/bash
 #PBS -N vamperouge_mordred
 #PBS -j oe
-#PBS -l walltime=16:00:00
+#PBS -l walltime=20:00:00
 #PBS -q gpuq -l select=1:ncpus=12:ngpus=1:gputype=p100:mem=100gb
 #PBS -M corentin.dupret@student.ecp.fr
 #PBS -m abe

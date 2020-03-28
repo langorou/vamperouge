@@ -13,8 +13,12 @@ num_MCTS_sims = 25
 arena_compare = 40
 cpuct = 1
 checkpoint = "./temp/"
-load_model = False
-load_folder_file = ("models", "best.pth.tar")
+load_model = True
+load_folder_file = ("temp", "checkpoint_4.pth.tar")
+load_samples = True
+load_samples_folder_file = ("temp", "checkpoint_3.pth.tar.samples")
+skip_first_self_play = False
+delete_old_samples = True
 num_iters_for_train_samples_history = 10
 
 board_width = 16
