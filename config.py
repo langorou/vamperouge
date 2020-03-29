@@ -14,10 +14,10 @@ arena_compare = 40
 cpuct = 1
 checkpoint = "./temp/"
 load_model = True
-load_folder_file = ("temp", "checkpoint_1.pth.tar")
+load_folder_file = ("temp", "checkpoint_3.pth.tar")
 load_samples = True
-load_samples_folder_file = ("temp", "checkpoint_0.pth.tar.samples")
-skip_first_self_play = False
+load_samples_folder_file = ("temp", "checkpoint_3.pth.tar.samples")
+skip_first_self_play = True
 delete_old_samples = True
 num_iters_for_train_samples_history = 4
 
