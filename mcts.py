@@ -21,8 +21,8 @@ class MCTS:
 
     def get_move_probabilities(self, state, temp=1):
         """
-        Perform simulations of MCTS starting from the given state, then
-        return the policy vector representing move probabilities.
+        get the policy vector representing move probabilities from MCTS
+        simulations from the given state
         """
         for _ in range(self.config.num_MCTS_sims):
             self.search(state)

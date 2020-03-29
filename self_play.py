@@ -18,7 +18,7 @@ from progress.misc import AverageMeter
 
 class SelfPlay:
     """
-    Implementation of the self-play and training of the neural network.
+    Implementation of the self-play and training of the neural network
     """
 
     def __init__(self, neural_net, config):
@@ -34,17 +34,8 @@ class SelfPlay:
 
     def run_episode(self):
         """
-        This function executes one episode of self-play, starting with player 1.
-        As the game is played, each turn is added as a training example to
-        train_samples. The game is played till the game ends. After the game
-        ends, the outcome of the game is used to assign values to each example
-        in train_samples.
-        It uses a temp=1 if episode_step < tempThreshold, and thereafter
-        uses temp=0.
-        Returns:
-            train_samples: a list of examples of the form (canonicalBoard,pi,v)
-                           pi is the MCTS informed policy vector, v is +1 if
-                           the player eventually won the game, else -1.
+        Runs one episode of self-play, starting with player 1, and return a
+        training sample containing (canon_state, policy, value) tuples.
         """
         train_samples = []
         state = game.get_init_state()
@@ -74,11 +65,7 @@ class SelfPlay:
 
     def learn(self):
         """
-        Performs num_iters iterations with num_eps episodes of self-play in each
-        iteration. After every iteration, retrains neural network with
-        examples in train_samples (which has a maximum length of max_queue_length).
-        It then pits the new neural network against the old one and accepts it
-        only if it wins >= update_threshold fraction of games.
+        Performs num_iters iterations with num_eps episodes of self-play
         """
 
         for i in range(1, self.config.num_iters + 1):

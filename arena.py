@@ -9,7 +9,7 @@ from progress.misc import AverageMeter
 
 class Arena:
     """
-    Implementation of a battle between two agents.
+    Implementation of a battle between two players
     """
 
     def __init__(self, player1, player2):
@@ -18,13 +18,8 @@ class Arena:
 
     def play_game(self):
         """
-        Run one episode of a game
-
-        Returns:
-            either
-                winner: player who won the game (1 if player1, -1 if player2)
-            or
-                draw result returned from the game that is neither 1, -1, nor 0.
+        Run one episode and return the winner of the game (1 if player1, -1 if player2)
+        or a draw result that is neither 1, -1, nor 0
         """
         players = [self.player2, None, self.player1]
         current_player = 1
@@ -54,7 +49,7 @@ class Arena:
         Returns:
             one_won: games won by player1
             two_won: games won by player2
-            draws:  games won by nobody
+            draws: games won by nobody
         """
         episode_time = AverageMeter()
         bar = Bar("Arena.play_games", max=num)
