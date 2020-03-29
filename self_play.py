@@ -62,9 +62,7 @@ class SelfPlay:
                 train_samples.append([s, current_player, p, None])
 
             move = np.random.choice(len(policy), p=policy)
-            state, current_player = game.get_next_state(
-                state, current_player, move
-            )
+            state, current_player = game.get_next_state(state, current_player, move)
 
             r = game.get_state_score(state, current_player)
 
@@ -194,11 +192,12 @@ class SelfPlay:
             Pickler(f).dump(self.train_samples_history)
         f.closed
         if self.config.delete_old_samples:
-            self.delete_train_samples(iteration-1)
+            self.delete_train_samples(iteration - 1)
 
     def load_train_samples(self):
         samples_file = os.path.join(
-            self.config.load_samples_folder_file[0], self.config.load_samples_folder_file[1]
+            self.config.load_samples_folder_file[0],
+            self.config.load_samples_folder_file[1],
         )
         if not os.path.isfile(samples_file):
             print(samples_file)
@@ -210,5 +209,15 @@ class SelfPlay:
             with open(samples_file, "rb") as f:
                 self.train_samples_history = Unpickler(f).load()
             f.closed
+            while (
+                len(self.train_samples_history)
+                > self.config.num_iters_for_train_samples_history
+            ):
+                print(
+                    "len(train_samples_history) =",
+                    len(self.train_samples_history),
+                    " => remove the oldest train_samples",
+                )
+                self.train_samples_history.pop(0)
             # examples based on the model were already collected (loaded)?
             self.skip_first_self_play = self.config.skip_first_self_play
