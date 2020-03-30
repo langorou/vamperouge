@@ -7,7 +7,7 @@ from tcp_client import TcpClient
 from mcts import MCTS
 from model import vamperouge_net
 
-VERSION = "percival"
+VERSION = "mordred"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
